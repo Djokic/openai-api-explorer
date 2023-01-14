@@ -1,19 +1,18 @@
 import {useCallback, useEffect, useState} from "react";
-import {ElkNode} from 'elkjs';
 import {OpenAPIV3} from "openapi-types";
-import {getLayout} from "../helpers/elkHelper";
+import {getLayout} from "../helpers/dagreHelper";
+import { getNodesWithPosition} from '../helpers/custom'
 
 import { getSchemaGraph } from "../helpers/graphHelpers";
 
 export function useGraphLayout(schema?: OpenAPIV3.SchemaObject) {
-  const [data, setData] = useState<ElkNode | undefined>(undefined);
+  const [data, setData] = useState<any>(undefined);
 
   const calcLayout = useCallback(async () => {
     const graph = getSchemaGraph(schema || {});
-    console.log('graph',graph);
-
-    const layout = await getLayout(graph);
-    setData(layout as ElkNode);
+    // const layout = getLayout(graph);
+    console.log(getNodesWithPosition(graph))
+    setData(getNodesWithPosition(graph));
   }, [schema]);
 
   useEffect(() => {

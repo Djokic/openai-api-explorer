@@ -1,14 +1,14 @@
-import {ElkNode} from "elkjs";
 import React, {useMemo} from 'react';
 import ReactFlow, {Background, Controls, MiniMap} from "reactflow";
 import 'reactflow/dist/style.css';
+import {getLayout} from "../../helpers/dagreHelper";
+import {mapDagreToReactFlow} from "../../helpers/dagreToReactFlow";
 
-import {mapElkToReactFlowData} from "../../helpers/elkToReactFlow";
 
 import './FlowGraph.css';
 
 type FlowGraphProps = {
-  layout?: ElkNode;
+  layout?: ReturnType<typeof getLayout>;
 }
 
 const minimapStyle = {
@@ -21,7 +21,7 @@ function FlowGraph({ layout }: FlowGraphProps) {
       return { nodes: [], edges: [] };
     }
 
-    const { nodes = [], edges = [] } = mapElkToReactFlowData(layout);
+    const { nodes = [], edges = [] } = mapDagreToReactFlow(layout);
     return { nodes, edges };
   }, [layout]);
 

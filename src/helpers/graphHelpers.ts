@@ -8,6 +8,8 @@ export type NodeData = {
   data?: any,
   width: number;
   height: number;
+  x?: number;
+  y?: number;
 }
 
 export type EdgeData = {
@@ -87,10 +89,10 @@ function createChildNodeWithEdges({ schema, id, parentId, nodes, edges }: SubGra
     nodes.push(createNode(relationId, relationType, schema));
 
     // Edge relation -> parent
-    edges.push(createEdge(`${relationId}.${parentId}`, relationId, parentId, 'rdfs:domain'));
+    edges.push(createEdge(`${relationId}-${parentId}`, relationId, parentId, 'rdfs:domain'));
 
     // Edge relation -> child
-    edges.push(createEdge(`${relationId}.${compositeId}`, relationId, compositeId, 'rdfs:range'));
+    edges.push(createEdge(`${relationId}-${compositeId}`, relationId, compositeId, 'rdfs:range'));
   }
 }
 
