@@ -1,24 +1,33 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {useMemo} from 'react';
+import {OpenAPIV3} from "openapi-types";
 import './App.css';
+import DiGraph from "./components/DiGraph/DiGraph";
+import {parseSchemas} from "./helpers/schemaHelpers";
+import CodeView from "./components/CodeView/CodeView";
+import SchemasList from "./components/SchemasList/SchemasList";
+import FlowGraph from "./components/FlowGraph/FlowGraph";
+
+
+import {useGraphLayout} from "./hooks/useGraphLayout";
+import {SPEC_FILE_URL} from "./helpers/constants";
+import {useOpenApiSpec} from "./hooks/useOpenApiSpec";
 
 function App() {
+  const [schema, setSchema] = React.useState<OpenAPIV3.SchemaObject>();
+  const {spec, error} = useOpenApiSpec(SPEC_FILE_URL);
+  const schemas = useMemo(() => parseSchemas(spec?.components?.schemas), [spec]);
+  const data = useGraphLayout(schema as OpenAPIV3.SchemaObject);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <SchemasList
+        schemas={schemas}
+        selectedSchema={schema}
+        onSelect={setSchema}
+      />
+      <CodeView json={schema}/>
+      <FlowGraph layout={data}/>
+      {/*<DiGraph layout={data}/>*/}
     </div>
   );
 }

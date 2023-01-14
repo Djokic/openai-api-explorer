@@ -1,0 +1,33 @@
+.FlowGraph {
+  flex: 1;
+  width: 50vw;
+  height: 100vh;
+}
+
+
+.react-flow__node {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.node-object {
+  background: lightblue;
+  z-index: -1;
+}
+
+.node-relation {
+  background: lightgoldenrodyellow;
+  z-index: -1;
+}
+
+.node-integer,
+.node-string,
+.node-boolean {
+  background: aliceblue;
+  z-index: -1;
+}
+
+.react-flow__attribution {
+  display: none;
+}

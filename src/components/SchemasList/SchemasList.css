@@ -1,0 +1,21 @@
+.SchemasList {
+  width: 25%;
+  max-width: 16rem;
+  height: 100vh;
+  padding: 1rem 0;
+  margin: 0;
+  list-style-type: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.SchemasList li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: #444;
+}
+
+.SchemasList li[data-active="true"] {
+  background: #f2f4f5;
+  color: #111;
+}

@@ -1,0 +1,9 @@
+.CodeView {
+  max-width: 24rem;
+  height: 100vh;
+  overflow: scroll;
+  background: #f2f4f6;
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.75rem;
+}
