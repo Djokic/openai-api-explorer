@@ -3,7 +3,7 @@ import React, {useMemo} from 'react';
 import ReactFlow, {Background, Controls, MiniMap} from "reactflow";
 import 'reactflow/dist/style.css';
 
-import {mapElkToReactFlowData} from "../../helpers/mapReactFlow";
+import {mapElkToReactFlowData} from "../../helpers/elkToReactFlow";
 
 import './FlowGraph.css';
 

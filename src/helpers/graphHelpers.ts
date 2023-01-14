@@ -1,17 +1,26 @@
 import {OpenAPIV3} from "openapi-types";
-import { capitalize, camelCase } from "lodash";
+import { camelCase, upperFirst} from "lodash";
 
-type NodeData = Record<string, any> & {
+export type NodeData = {
   id: string;
-  data: any,
+  label: string;
+  type: string;
+  data?: any,
   width: number;
   height: number;
 }
 
-type EdgeData = Record<string, any> & {
+export type EdgeData = {
   id: string;
-  sources: string[];
-  targets: string[];
+  source: string;
+  target: string;
+  label: string;
+  data?: any;
+}
+
+export type GraphData = {
+  nodes: NodeData[];
+  edges: EdgeData[];
 }
 
 export type GraphParams = {
@@ -31,25 +40,16 @@ export function getLabelFromId(id: string) {
   return id.split('.').pop();
 }
 
-const layoutOptions = {
-  "elk.algorithm": "layered",
-  "hierarchyHandling": "INCLUDE_CHILDREN",
-  "elk.direction": "DOWN",
-  "elk.alignment": "DOWN",
-  "elk.portAlignment.default": "CENTER",
-  "elk.layered.layering.strategy": "NETWORK_SIMPLEX",
-  "elk.layered.cycleBreaking.strategy": "MODEL_ORDER",
-  "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
-  "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX", //BRANDES_KOEPF
-  "elk.layered.considerModelOrder.strategy": "NONE",
-  "elk.layered.nodePlacement.bk.edgeStraightening": "NONE",
-  "elk.layered.nodePlacement.bk.fixedAlignment": "LEFTUP",
-  "elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NONE",
-  "elk.layered.layering.nodePromotion.strategy": "NONE",
-  "elk.layered.compaction.postCompaction.strategy": "NONE",
-  "elk.partitioning.activate": true,
-  "edgeRouting": "ORTHOGONAL"
-};
+export function formatNodeLabelByType(label?: string, type?: string) {
+  switch (type) {
+    case 'object':
+      return `${upperFirst(camelCase(label))}`;
+    case 'array':
+      return `${camelCase(label)}[]`;
+    default:
+      return camelCase(label);
+  }
+}
 
 type SubGraphParams = {
   schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
@@ -59,46 +59,38 @@ type SubGraphParams = {
   edges: EdgeData[];
 }
 
+function createNode(id: string, type: string, data: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject) {
+  return ({
+    id,
+    label: formatNodeLabelByType(getLabelFromId(id), type),
+    type,
+    data,
+    ...DefaultSize
+  })
+}
+
+function createEdge(id: string, source: string, target: string, label: string) {
+  return { id, source, target, label};
+}
+
 function createChildNodeWithEdges({ schema, id, parentId, nodes, edges }: SubGraphParams) {
-  const { type = undefined } = schema as OpenAPIV3.SchemaObject;
+  const { type = '' } = schema as OpenAPIV3.SchemaObject;
   const compositeId = parentId ? `${parentId}.${id}` : id;
 
   // Child node
-  nodes.push({
-    id: compositeId,
-    className: `node-${type}`,
-    type,
-    data: schema,
-    ...DefaultSize,
-  });
+  nodes.push(createNode(compositeId, type, schema));
 
   if (parentId) {
     const relationId = `${parentId}.has_${id}`;
     const relationType = 'relation';
     // Relation node
-    nodes.push({
-      id: relationId,
-      className: `node-${relationType}`,
-      type: relationType,
-      data: schema,
-      ...DefaultSize,
-    });
+    nodes.push(createNode(relationId, relationType, schema));
 
     // Edge relation -> parent
-    edges.push({
-      id: `${relationId}.${parentId}`,
-      sources: [relationId],
-      targets: [parentId],
-      label: 'rdfs:domain'
-    });
+    edges.push(createEdge(`${relationId}.${parentId}`, relationId, parentId, 'rdfs:domain'));
 
     // Edge relation -> child
-    edges.push({
-      id: `${relationId}.${compositeId}`,
-      sources: [relationId],
-      targets: [compositeId],
-      label: 'rdfs:range'
-    });
+    edges.push(createEdge(`${relationId}.${compositeId}`, relationId, compositeId, 'rdfs:range'));
   }
 }
 
@@ -175,13 +167,7 @@ export function getSchemaGraph(schema: OpenAPIV3.SchemaObject) {
   const nodes: NodeData[] = [];
   const edges: EdgeData[] = [];
 
-  nodes.push({
-    id: schema.title || 'root',
-    className: 'node-object',
-    type: 'object',
-    data: schema,
-    ...DefaultSize
-  })
+  nodes.push(createNode(schema.title || 'root', 'object', schema));
 
   createSubGraph({
     schema,
@@ -190,56 +176,5 @@ export function getSchemaGraph(schema: OpenAPIV3.SchemaObject) {
     edges
   });
 
-  return {
-    id: schema.title || 'root',
-    layoutOptions,
-    children: nodes,
-    edges
-  }
-}
-
-export function getGraphData(schema: OpenAPIV3.SchemaObject): GraphParams {
-  const nodes: NodeData[] = [];
-  const edges: EdgeData[] = [];
-
-  const rootId = schema.title || 'root';
-
-  nodes.push({
-    id: rootId,
-    className: 'node-class',
-    ...DefaultSize,
-    data: schema,
-  });
-
-  Object.entries(schema.properties || {}).forEach(([key, value]) => {
-    const propId = `${rootId}.${key}`;
-
-    const type = (value as { type: string }).type;
-
-    const relationshipLabel = type === 'boolean' ? 'is' : 'has';
-    const relationshipId = `${rootId}.${relationshipLabel}${capitalize(key)}`;
-
-    nodes.push({ id: propId, className: 'node-property', data: value,...DefaultSize });
-    nodes.push({ id: relationshipId, className: 'node-relationship', data: value, ...DefaultSize });
-
-    edges.push({
-      id: `${relationshipId}.${rootId}`,
-      sources: [relationshipId],
-      targets: [rootId],
-      label: 'rdfs:domain'
-    });
-    edges.push({
-      id: `${relationshipId}.${propId}`,
-      sources: [relationshipId],
-      targets: [propId],
-      label: 'rdfs:range'
-    });
-  });
-
-  return {
-    id: rootId,
-    layoutOptions ,
-    children: nodes,
-    edges
-  }
+  return { nodes, edges }
 }

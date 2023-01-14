@@ -1,7 +1,6 @@
 import {ElkNode} from "elkjs";
 import {camelCase, upperFirst} from "lodash";
 import {MarkerType} from "reactflow";
-import {getLabelFromId} from "./graphHelpers";
 
 
 export function formatNodeLabelByType(label?: string, type?: string) {
@@ -18,10 +17,11 @@ export function mapElkToReactFlowData(layout: ElkNode) {
   const nodes = layout.children?.map((node: Record<string, any>) => ({
     ...node,
     id: node.id,
-    position: {x: node.x, y: node.y},
-    type: undefined,
+    position: { x: node.x, y: node.y},
+    className: `node-${node.type}`,
+    type: 'default',
     data: {
-      label: formatNodeLabelByType(getLabelFromId(node.id), node.type),
+      label: node.label,
       ...node.data
     },
     style: { width: node.width, height: node.height }
