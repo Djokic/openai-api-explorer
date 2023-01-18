@@ -9,7 +9,7 @@ type CodeViewProps = {
 
 export default function CodeView(props: CodeViewProps) {
   return (
-    <pre className="CodeView">
+    <pre className="CodeView" contentEditable={true}>
       {JSON.stringify(props.json, null, 2)}
     </pre>
   )
