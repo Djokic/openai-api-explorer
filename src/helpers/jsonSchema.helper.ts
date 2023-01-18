@@ -1,9 +1,23 @@
 import {camelCase, upperFirst} from "lodash";
 import {OpenAPIV3} from "openapi-types";
 
-interface RDFSGraph {
-  nodes: { id: string }[];
-  edges: { id: string, source: string, target: string, label: string }[];
+export type RDFSGraph ={
+  nodes: RDFSNode[];
+  edges: RDFSRelation[];
+}
+
+export type RDFSNode = {
+  id: string;
+  label: string;
+  type?: string;
+  data?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
+}
+
+export type RDFSRelation = {
+  id: string;
+  label: string;
+  source: string;
+  target: string;
 }
 
 export function getLabelFromId(id: string) {

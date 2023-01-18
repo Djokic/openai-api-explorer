@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {OpenAPIV3} from "openapi-types";
 import './App.css';
-import DiGraph from "./components/DiGraph/DiGraph";
 import {parseSchemas} from "./helpers/schemaHelpers";
 import CodeView from "./components/CodeView/CodeView";
 import SchemasList from "./components/SchemasList/SchemasList";
@@ -16,7 +15,11 @@ function App() {
   const [schema, setSchema] = React.useState<OpenAPIV3.SchemaObject>();
   const {spec, error} = useOpenApiSpec(SPEC_FILE_URL);
   const schemas = useMemo(() => parseSchemas(spec?.components?.schemas), [spec]);
-  const data = useGraphLayout(schema as OpenAPIV3.SchemaObject);
+  const data = useGraphLayout({
+    schema,
+    schemas: spec?.components?.schemas as Record<string, OpenAPIV3.SchemaObject>,
+    nodeSize: { width: 200, height: 50 }
+  });
 
   return (
     <div className="App">

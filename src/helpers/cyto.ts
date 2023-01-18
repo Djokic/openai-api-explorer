@@ -1,20 +1,16 @@
 import Cytoscape from "cytoscape";
 import COSEBilkent from 'cytoscape-cose-bilkent';
+import {RDFSGraph} from "../helpers/jsonSchema.helper";
+import {LayoutData} from "../hooks/useGraphLayout";
 
-import {GraphData} from "./graphHelpers";
 
 Cytoscape.use(COSEBilkent);
 
-export function getCyLayout(graph: GraphData) {
+export function getLayout(graph: RDFSGraph, nodeSize: { width: number, height: number }): LayoutData {
   const { nodes, edges } = graph;
   const elements = [
-    ...nodes.map(node => ({
-      data: { id: node.id, label: node.label },
-      // style: { width: node.width, height: node.height }
-    })),
-    ...edges.map(edge => ({
-      data: { id: edge.id, source: edge.source, target: edge.target }
-    }))
+    ...nodes.map((node) => ({ data: node })),
+    ...edges.map((edge) => ({ data: edge}))
   ]
 
   const cy = Cytoscape({
@@ -25,8 +21,7 @@ export function getCyLayout(graph: GraphData) {
     style: [{
       selector: 'node',
       style: {
-        width: 200,
-        height: 50,
+        ...nodeSize,
         shape: 'rectangle'
       }
     }]
