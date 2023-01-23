@@ -36,7 +36,7 @@ export function useGraphLayout({schema, schemas, nodeSize}: UseGraphLayoutParams
       const layout = getLayout(graph, nodeSize);
       setData(layout);
     }
-  }, [schema]);
+  }, [schema, nodeSize]);
 
   useEffect(() => {
     calcLayout();

@@ -14,7 +14,7 @@ export default function CodeView(props: CodeViewProps) {
     <div className="CodeView hide-scrollbar" data-active={isActive}>
       {props.jsons?.map((json) => (
         <pre className="hide-scrollbar">
-          <header>// {json?.title}</header>
+          <header>{`// ${json?.title}`}</header>
           {JSON.stringify(json || {}, null, 2)}
         </pre>
       ))}
