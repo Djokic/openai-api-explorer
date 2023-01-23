@@ -1,3 +1,5 @@
+@import "styles/helpers.css";
+
 html {
   font-size: 16px;
   height: 100%;
@@ -22,23 +24,4 @@ body {
   flex: 1;
   width: 50vw;
   height: 100vh;
-}
-
-.node-class {
-  background: lightblue;
-  z-index: -1;
-}
-
-.node-relationship {
-  background: lightgoldenrodyellow;
-  z-index: -1;
-}
-
-.node-property {
-  background: lightgoldenrodyellow;
-  z-index: -1;
-}
-
-.react-flow__attribution {
-  display: none;
 }

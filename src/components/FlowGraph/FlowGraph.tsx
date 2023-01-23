@@ -1,7 +1,8 @@
 import React, {useMemo} from 'react';
 import ReactFlow, {Background, Controls, MiniMap} from "reactflow";
 import 'reactflow/dist/style.css';
-import {getLayout} from "../../helpers/cyto";
+
+import {getLayout} from "../../helpers/cytoscape.helper";
 
 
 import './FlowGraph.css';
@@ -14,9 +15,9 @@ const minimapStyle = {
   height: 120,
 };
 
-function mapToReactFlowLayout(params: ReturnType<typeof getLayout>) {
+function mapToReactFlowLayout(layout?: ReturnType<typeof getLayout>) {
   return {
-    nodes: params.nodes.map((node) => ({
+    nodes: layout?.nodes.map((node) => ({
       ...node,
       type: 'default',
       className: `node-${node.type}`,
@@ -24,7 +25,7 @@ function mapToReactFlowLayout(params: ReturnType<typeof getLayout>) {
       data: { label: node.label, ...node.data },
       style: { width: node.width, height: node.height }
     })),
-    edges: params.edges.map((edge) => ({
+    edges: layout?.edges.map((edge) => ({
       ...edge,
       animated: true,
       arrowHeadType: 'arrowclosed',
@@ -33,21 +34,14 @@ function mapToReactFlowLayout(params: ReturnType<typeof getLayout>) {
 }
 
 function FlowGraph({ layout }: FlowGraphProps) {
-  const data = useMemo(() => {
-    if (!layout) {
-      return { nodes: [], edges: [] };
-    }
-
-    const { nodes = [], edges = [] } = mapToReactFlowLayout(layout);
-    return { nodes, edges };
-  }, [layout]);
+  const { nodes = [], edges = [] } = mapToReactFlowLayout(layout)
 
   return (
     <div className="FlowGraph">
       <ReactFlow
-        key={data?.nodes?.length + data.edges.length}
-        nodes={data.nodes}
-        edges={data.edges}
+        key={nodes?.length + edges.length}
+        nodes={nodes}
+        edges={edges}
         fitView
         attributionPosition="top-right"
       >

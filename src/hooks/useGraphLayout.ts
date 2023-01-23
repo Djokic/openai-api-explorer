@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from "react";
 import {OpenAPIV3} from "openapi-types";
 import {jsonSchemaToRDFSGraph, RDFSNode, RDFSRelation} from "../helpers/jsonSchema.helper";
-import {getLayout} from "../helpers/cyto";
+import {getLayout} from "../helpers/cytoscape.helper";
 
 
 type LayoutNode = RDFSNode & {
