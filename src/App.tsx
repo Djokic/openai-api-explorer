@@ -27,13 +27,18 @@ function App() {
 
   return (
     <div className="App">
-      <SchemasList
-        schemas={schemas}
-        selectedSchema={schema}
-        onSelect={setSchema}
-        codeViewActive={showCodeView}
-        onCodeViewToggle={toggleCodeView}
-      />
+      <aside>
+        <img src='./openai-logo.svg' className="logo"/>
+        <span>API Explorer</span>
+
+        <SchemasList
+          schemas={schemas}
+          selectedSchema={schema}
+          onSelect={setSchema}
+          codeViewActive={showCodeView}
+          onCodeViewToggle={toggleCodeView}
+        />
+      </aside>
       <CodeView jsons={[schema]} active={showCodeView}/>
 
       <FlowGraph layout={data}/>
