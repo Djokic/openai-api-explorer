@@ -1,4 +1,3 @@
-import {useCallback, useEffect, useState} from "react";
 import {OpenAPIV3} from "openapi-types";
 import {jsonSchemaToRDFSGraph, RDFSNode, RDFSRelation} from "../helpers/jsonSchema.helper";
 import {getLayout} from "../helpers/cytoscape.helper";
@@ -28,19 +27,10 @@ type UseGraphLayoutParams = {
 }
 
 export function useGraphLayout({schema, schemas, nodeSize}: UseGraphLayoutParams) {
-  const [data, setData] = useState<LayoutData>({nodes: [], edges: []});
+  if (!schema) {
+    return { nodes: [], edges: []}
+  }
 
-  const calcLayout = useCallback(async () => {
-    if(schema) {
-      const graph = jsonSchemaToRDFSGraph(schema, schemas || {});
-      const layout = getLayout(graph, nodeSize);
-      setData(layout);
-    }
-  }, [schema, schemas, nodeSize]);
-
-  useEffect(() => {
-    calcLayout();
-  }, [calcLayout]);
-
-  return data;
+  const graph = jsonSchemaToRDFSGraph(schema, schemas || {});
+  return getLayout(graph, nodeSize);
 }

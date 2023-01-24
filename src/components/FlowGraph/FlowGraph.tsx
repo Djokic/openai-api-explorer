@@ -39,9 +39,11 @@ function FlowGraph({ layout }: FlowGraphProps) {
   return (
     <div className="FlowGraph">
       <ReactFlow
-        key={nodes?.length + edges.length}
-        nodes={nodes}
-        edges={edges}
+        key={JSON.stringify(layout)}
+        defaultNodes={nodes}
+        defaultEdges={edges}
+        nodesDraggable={true}
+        onNodeClick={console.log}
         fitView
         attributionPosition="top-right"
       >

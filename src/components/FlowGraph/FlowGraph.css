@@ -11,19 +11,22 @@
   align-items: center;
 }
 
-.node-object {
+.node-class {
   background: lightblue;
   z-index: -1;
 }
 
 .node-relation {
   background: lightgoldenrodyellow;
+  border-radius: 3rem;
   z-index: -1;
 }
 
 .node-integer,
 .node-string,
-.node-boolean {
+.node-boolean,
+.node-object,
+.node-array {
   background: aliceblue;
   z-index: -1;
 }
