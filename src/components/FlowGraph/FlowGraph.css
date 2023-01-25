@@ -16,13 +16,17 @@
   z-index: -1;
 }
 
-.node-relation {
+.node-type {
   background: lightgoldenrodyellow;
   border-radius: 3rem;
-  z-index: -1;
+}
+
+.node-rdf\:List {
+  background: lightgoldenrodyellow;
 }
 
 .node-integer,
+.node-number,
 .node-string,
 .node-boolean,
 .node-object,

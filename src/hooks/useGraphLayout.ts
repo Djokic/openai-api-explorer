@@ -1,5 +1,5 @@
 import {OpenAPIV3} from "openapi-types";
-import {jsonSchemaToRDFSGraph, RDFSNode, RDFSRelation} from "../helpers/jsonSchema.helper";
+import {jsonSchemaToRDFSGraph, RDFSNode, RDFSEdge} from "../helpers/jsonSchema2.helper";
 import {getLayout} from "../helpers/cytoscape.helper";
 
 
@@ -10,7 +10,7 @@ type LayoutNode = RDFSNode & {
   height?: number;
 }
 
-type LayoutEdge = RDFSRelation;
+type LayoutEdge = RDFSEdge;
 
 export type LayoutData = {
   nodes: LayoutNode[];

@@ -22,17 +22,18 @@ describe('jsonSchemaToRDFSGraph', () => {
     };
     const output = {
       nodes: [
-        { id: 'Engine', label: 'Engine', type: 'object', data: schema },
+        { id: 'Engine', label: 'Engine', type: 'class', data: schema },
         { id: 'Engine.id', label: 'id', type: 'string', data: { type: 'string' } },
-        { id: 'Engine.has_id', label: 'hasId', type: 'relation' },
+        { id: 'Engine.id.string', label: 'string', type: 'type', data: undefined },
+
         { id: 'Engine.name', label: 'name', type: 'string', data: { type: 'string' } },
-        { id: 'Engine.has_name', label: 'hasName', type: 'relation' },
+        { id: 'Engine.name.string', label: 'string', type: 'type', data: undefined },
       ],
       edges: [
-        { id: 'Engine.has_id-Engine', source: 'Engine.has_id', target: 'Engine', label: 'rdf:domain' },
-        { id: 'Engine.has_id-Engine.id', source: 'Engine.has_id', target: 'Engine.id', label: 'rdf:range' },
-        { id: 'Engine.has_name-Engine', source: 'Engine.has_name', target: 'Engine', label: 'rdf:domain' },
-        { id: 'Engine.has_name-Engine.name', source: 'Engine.has_name', target: 'Engine.name', label: 'rdf:range' },
+        { id: 'Engine.id-Engine', source: 'Engine.id', target: 'Engine', label: 'rdf:domain' },
+        { id: 'Engine.id-Engine.id.string', source: 'Engine.id', target: 'Engine.id.string', label: 'rdf:range' },
+        { id: 'Engine.name-Engine', source: 'Engine.name', target: 'Engine', label: 'rdf:domain' },
+        { id: 'Engine.name-Engine.name.string', source: 'Engine.name', target: 'Engine.name.string', label: 'rdf:range' },
       ]
     }
     const result = jsonSchemaToRDFSGraph(schema, {});
