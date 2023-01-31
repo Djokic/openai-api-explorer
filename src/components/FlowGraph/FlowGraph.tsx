@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import ReactFlow, {Background, Controls, MiniMap} from "reactflow";
 import 'reactflow/dist/style.css';
+import {getSchemaTitleFromRef} from "../../helpers/schemaHelpers";
 
 import {getLayout} from "../../helpers/cytoscape.helper";
 
@@ -9,6 +10,7 @@ import './FlowGraph.css';
 
 type FlowGraphProps = {
   layout?: ReturnType<typeof getLayout>;
+  onSchemaNodeClick: (schemaTitle: string) => void;
 }
 
 const minimapStyle = {
@@ -33,8 +35,15 @@ function mapToReactFlowLayout(layout?: ReturnType<typeof getLayout>) {
   };
 }
 
-function FlowGraph({ layout }: FlowGraphProps) {
+function FlowGraph({ layout, onSchemaNodeClick }: FlowGraphProps) {
   const { nodes = [], edges = [] } = mapToReactFlowLayout(layout)
+
+  const handleNodeClick = useCallback((_event: any, node: { data: { $ref: any; }; } ) => {
+    if (node.data.$ref) {
+      const schemaTitle = getSchemaTitleFromRef(node.data.$ref);
+      onSchemaNodeClick(schemaTitle)
+    }
+  }, [onSchemaNodeClick])
 
   return (
     <div className="FlowGraph">
@@ -43,7 +52,7 @@ function FlowGraph({ layout }: FlowGraphProps) {
         defaultNodes={nodes}
         defaultEdges={edges}
         nodesDraggable={true}
-        onNodeClick={console.log}
+        onNodeClick={handleNodeClick}
         fitView
         attributionPosition="top-right"
       >

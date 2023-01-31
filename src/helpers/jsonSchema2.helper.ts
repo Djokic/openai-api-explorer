@@ -1,7 +1,9 @@
 import {camelCase, upperFirst} from "lodash";
 import {OpenAPIV3} from "openapi-types";
 
-export type RDFSGraph ={
+import {getSchemaTitleFromRef} from "./schemaHelpers";
+
+export type RDFSGraph = {
   nodes: RDFSNode[];
   edges: RDFSEdge[];
 }
@@ -28,13 +30,51 @@ export function formatNodeLabelByType(label?: string, type?: string) {
   switch (type) {
     case 'class':
       return `${upperFirst(camelCase(label))}`;
+    case 'class-ref':
+      return `${upperFirst(camelCase(label))}`;
     default:
       return camelCase(label);
   }
 }
 
-function createNode({ id, type, data }: { id: string, type?: string, data?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject}) {
-  return ({
+function getPropertyType(property: (OpenAPIV3.SchemaObject & { $ref?: string})) {
+  if (property.properties) {
+    return 'class';
+  }
+
+  if(property.$ref) {
+    return 'class-ref'
+  }
+
+  if(property.oneOf) {
+    return 'variant';
+  }
+
+  return property.type;
+}
+
+function isPrimitiveSchema(schema: OpenAPIV3.SchemaObject) {
+  const {type, properties} = schema;
+  if (type === 'array' || (type === 'object' && properties) || !type) {
+    return false;
+  }
+
+  return true;
+}
+
+enum EdgeType {
+  DOMAIN = 'rdf:domain',
+  RANGE = 'rdf:range',
+
+  TYPE = 'rdf:type'
+}
+
+function createNode(graph: RDFSGraph, {
+  id,
+  type,
+  data
+}: { id: string, type?: string, data?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject }) {
+  graph.nodes.push({
     id,
     label: formatNodeLabelByType(getLabelFromId(id), type),
     type,
@@ -42,150 +82,91 @@ function createNode({ id, type, data }: { id: string, type?: string, data?: Open
   })
 }
 
-function getPropertyType(property: OpenAPIV3.SchemaObject) {
-  if (property.properties) {
-    return 'class';
-  }
+function createEdge(graph: RDFSGraph, {id, parentId, edgeType}: { id: string, parentId: string, edgeType: EdgeType }) {
+  const source = edgeType === EdgeType.DOMAIN ? id : parentId;
+  const target = edgeType === EdgeType.DOMAIN ? parentId : id;
 
-  return property.type;
-}
-
-function isPrimitivePropertyType(type?: string) {
-  return Boolean(type) && ['boolean', 'string', 'integer', 'float', 'number'].includes(type!);
-}
-
-function addPrimitiveProperty(propertyId: string, property: OpenAPIV3.SchemaObject, graph: RDFSGraph) {
-  // Create property node
-  graph.nodes.push(createNode({id: propertyId, type: getPropertyType(property), data: property}));
-
-  // Create property range node
-  const propertyTypeNodeId = `${propertyId}.${property.type}`;
-  graph.nodes.push(createNode({id: propertyTypeNodeId, type: 'type', data: undefined}));
-
-  // Create range edge from property to property type node
   graph.edges.push({
-    id: `${propertyId}-${propertyTypeNodeId}`,
-    source: propertyId,
-    target: propertyTypeNodeId,
-    label: 'rdf:range'
-  });
+    id: `${source}-${target}`,
+    source,
+    target,
+    label: edgeType
+  })
 }
 
-export function jsonSchemaToRDFSGraph(
+export function jRDF(schema: OpenAPIV3.SchemaObject) {
+  const graph: RDFSGraph = {nodes: [], edges: []};
+  parseJsonPartToRdfsGraph(schema.title || '', schema, graph);
+  return graph;
+}
+
+function parseJsonPartToRdfsGraph(
+  id: string,
   schema: OpenAPIV3.SchemaObject,
-  schemas: Record<string, OpenAPIV3.SchemaObject>,
-  prevNodes: RDFSNode[] = [],
-  prevEdges: RDFSEdge[] = [],
-  rootElementId = ''
+  graph: RDFSGraph = {nodes: [], edges: []},
+  parentId?: string,
+  parentEdgeType?: EdgeType,
 ): RDFSGraph {
-  const graph: RDFSGraph = {
-    nodes: prevNodes,
-    edges: prevEdges
-  };
 
-  const rootId = rootElementId || schema.title;
-
-  if (!rootId) {
-    throw new Error(`No rootId for schema: ${JSON.stringify(schema || {}, null, 2)}`);
+  if (!id) {
+    throw new Error(`No id for schema part: ${JSON.stringify(schema || {}, null, 2)}`);
   }
 
-  // Create root element
-  graph.nodes.push(createNode({ id: rootId, type: 'class', data: schema }));
+  // Create node
+  createNode(graph, {id: id, type: getPropertyType(schema), data: schema});
 
-  const properties = schema.properties || {};
-  Object.keys(properties).forEach(propertyKey => {
-    const propertyId = `${rootId}.${propertyKey}`;
-    const property = properties[propertyKey] as OpenAPIV3.SchemaObject;
+  // Create edge node -> parent
+  if (parentId && parentEdgeType) {
+    createEdge(graph, { id, parentId, edgeType: parentEdgeType });
+  }
 
-    // Create property domain edge
-    graph.edges.push({
-      id: `${propertyId}-${rootId}`,
-      source: propertyId,
-      target: rootId,
-      label: 'rdf:domain'
+  if (schema.type === 'array') {
+    // Create rdf:List node
+    const listNodeId = `${id}.rdf:List`;
+    createNode(graph, {id: listNodeId, type: 'rdf:List', data: undefined});
+
+    // Create edge property -> rdf:List
+    createEdge(graph, { id: listNodeId, parentId: id, edgeType: EdgeType.RANGE });
+
+    const items = schema.items as OpenAPIV3.SchemaObject || {};
+    if (isPrimitiveSchema(items)) {
+      // Create type node
+      const typeNodeId = `${id}.${items.type}`;
+      createNode(graph, {id: typeNodeId, type: 'type', data: undefined});
+
+      // Create rdf:range edge property -> type
+      createEdge(graph, { id: typeNodeId, parentId: listNodeId, edgeType: EdgeType.TYPE });
+    } else {
+      const $ref = (items as OpenAPIV3.SchemaObject & { $ref: string })?.$ref || '';
+      const nextId = $ref
+        ? getSchemaTitleFromRef($ref)
+        : `${id}.${items.type}`;
+      parseJsonPartToRdfsGraph(nextId, items, graph, listNodeId, EdgeType.TYPE);
+    }
+  }
+
+  if (!schema.type && schema.oneOf) {
+    // @ts-ignore
+    schema.oneOf.forEach((subSchema: OpenAPIV3.SchemaObject) => {
+      parseJsonPartToRdfsGraph(`${id}.${subSchema.type}`, subSchema, graph, id, EdgeType.RANGE);
+    })
+  }
+
+  if (schema.properties) {
+    Object.keys(schema.properties).forEach(propertyKey => {
+      const subSchema = schema.properties?.[propertyKey] as OpenAPIV3.SchemaObject;
+      parseJsonPartToRdfsGraph(`${id}.${propertyKey}`, subSchema, graph, id, EdgeType.DOMAIN);
     });
+  }
 
-    if (property.type === 'object') {
-      if (property.properties) {
-        jsonSchemaToRDFSGraph(
-          property,
-          schemas,
-          graph.nodes,
-          graph.edges,
-          propertyId
-        );
-      } else {
-        addPrimitiveProperty(propertyId, property, graph);
-      }
-    }
+  if (isPrimitiveSchema(schema)) {
+    // Create type node
+    const typeNodeId = `${id}.${schema.type}`;
+    createNode(graph, {id: typeNodeId, type: 'type', data: undefined});
 
-    if (property.type === 'array') {
-      // Create property node
-      graph.nodes.push(createNode({id: propertyId, type: getPropertyType(property), data: property}));
+    // Create rdf:range edge property -> type
+    createEdge(graph, { id: typeNodeId, parentId: id, edgeType: EdgeType.RANGE });
+  }
 
-      // Create rdf:List node
-      const propertyListNodeId = `${propertyId}.rdf:List`;
-      graph.nodes.push(createNode({id: propertyListNodeId, type: 'rdf:List', data: undefined}));
-
-      // Create edge from property to rdf:List
-      graph.edges.push({
-        id: `${propertyId}-${propertyListNodeId}`,
-        source: propertyId,
-        target: propertyListNodeId,
-        label: 'rdf:range'
-      });
-
-
-      // Create property type node
-      const propertyItemValue = property.items as OpenAPIV3.SchemaObject & { $ref?: string };
-      if (propertyItemValue.$ref) {
-        const refId = propertyItemValue.$ref.substring(propertyItemValue.$ref.lastIndexOf('/') + 1);
-        const refSchema = schemas?.[refId];
-
-        // Create edge from rdf:List to property type node
-        graph.edges.push({
-          id: `${propertyListNodeId}-${refId}`,
-          source: propertyListNodeId,
-          target: refId,
-          label: 'rdf:type'
-        });
-
-        graph.nodes.push(createNode({
-          id: refId,
-          type: getPropertyType(refSchema),
-          data: refSchema
-        }));
-      } else {
-        // Create edge from rdf:List to property type node
-        const propertyTypeNodeId = `${propertyId}.${propertyKey}Item`;
-        graph.edges.push({
-          id: `${propertyListNodeId}-${propertyTypeNodeId}`,
-          source: propertyListNodeId,
-          target: propertyTypeNodeId,
-          label: 'rdf:type'
-        });
-
-        graph.nodes.push(createNode({
-          id: propertyTypeNodeId,
-          type: getPropertyType(propertyItemValue),
-          data: propertyItemValue
-        }));
-      }
-    }
-
-    if (isPrimitivePropertyType(property.type)) {
-      addPrimitiveProperty(propertyId, property, graph);
-    }
-
-    if(!property.type && property.oneOf) {
-      // Create property node
-      graph.nodes.push(createNode({id: propertyId, type: getPropertyType(property), data: property}));
-
-      // Create nodes and edges for each kind
-      property.oneOf.forEach((propKind) => {
-
-      })
-    }
-  });
   return graph;
 }

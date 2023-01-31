@@ -1,5 +1,5 @@
 import {OpenAPIV3} from "openapi-types";
-import {jsonSchemaToRDFSGraph, RDFSNode, RDFSEdge} from "../helpers/jsonSchema2.helper";
+import { RDFSNode, RDFSEdge, jRDF} from "../helpers/jsonSchema2.helper";
 import {getLayout} from "../helpers/cytoscape.helper";
 
 
@@ -31,6 +31,6 @@ export function useGraphLayout({schema, schemas, nodeSize}: UseGraphLayoutParams
     return { nodes: [], edges: []}
   }
 
-  const graph = jsonSchemaToRDFSGraph(schema, schemas || {});
+  const graph = jRDF(schema);
   return getLayout(graph, nodeSize);
 }

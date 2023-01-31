@@ -15,14 +15,19 @@ function App() {
   const [schema, setSchema] = React.useState<OpenAPIV3.SchemaObject>();
   const [showCodeView, setShowCodeView] = React.useState(true);
   const {spec } = useOpenApiSpec(SPEC_FILE_URL);
-  const schemas = useMemo(() => parseSchemas(spec?.components?.schemas), [spec]);
+  const schemasMap = spec?.components?.schemas as Record<string, OpenAPIV3.SchemaObject>;
+  const schemasList = useMemo(() => parseSchemas(spec?.components?.schemas), [spec]);
   const data = useGraphLayout({
     schema,
-    schemas: spec?.components?.schemas as Record<string, OpenAPIV3.SchemaObject>,
+    schemas: schemasMap,
     nodeSize: { width: 200, height: 50 }
   });
 
   const toggleCodeView = () => setShowCodeView(!showCodeView);
+
+  const handleSchemaNodeClick = (schemaTitle: string) => {
+    setSchema(schemasMap[schemaTitle]);
+  }
 
   return (
     <div className="App">
@@ -31,7 +36,7 @@ function App() {
         <span>API Explorer</span>
 
         <SchemasList
-          schemas={schemas}
+          schemas={schemasList}
           selectedSchema={schema}
           onSelect={setSchema}
           codeViewActive={showCodeView}
@@ -40,7 +45,7 @@ function App() {
       </aside>
       <CodeView jsons={[schema]} active={showCodeView}/>
 
-      <FlowGraph layout={data}/>
+      <FlowGraph layout={data} onSchemaNodeClick={handleSchemaNodeClick}/>
       {/*<DiGraph layout={data}/>*/}
     </div>
   );

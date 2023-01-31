@@ -8,3 +8,7 @@ export function parseSchemas(schemas: Record<string, OpenAPIV3.SchemaObject | Op
     };
   });
 }
+
+export function getSchemaTitleFromRef(ref?: string) {
+  return ref?.split('/').pop() || '';
+}

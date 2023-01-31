@@ -1,5 +1,5 @@
 import {OpenAPIV3} from "openapi-types";
-import { jsonSchemaToRDFSGraph } from "./jsonSchema2.helper";
+import { jRDF as jsonSchemaToRDFSGraph } from "./jsonSchema2.helper";
 import { sortBy } from "lodash";
 
 function getArraySnapshot(array:any[]) {
@@ -36,7 +36,7 @@ describe('jsonSchemaToRDFSGraph', () => {
         { id: 'Engine.name-Engine.name.string', source: 'Engine.name', target: 'Engine.name.string', label: 'rdf:range' },
       ]
     }
-    const result = jsonSchemaToRDFSGraph(schema, {});
+    const result = jsonSchemaToRDFSGraph(schema);
     expect(getArraySnapshot(result.nodes)).toEqual(getArraySnapshot(output.nodes));
     expect(getArraySnapshot(result.edges)).toEqual(getArraySnapshot(output.edges));
   });
@@ -80,7 +80,7 @@ describe('jsonSchemaToRDFSGraph', () => {
         { id: 'Engine.data.has_index-Engine.data.index', source: 'Engine.data.has_index', target: 'Engine.data.index', label: 'rdf:range' },
       ]
     };
-    const result = jsonSchemaToRDFSGraph(schema, {});
+    const result = jsonSchemaToRDFSGraph(schema);
     expect(getArraySnapshot(result.nodes)).toEqual(getArraySnapshot(output.nodes));
     expect(getArraySnapshot(result.edges)).toEqual(getArraySnapshot(output.edges));
   });
@@ -154,7 +154,7 @@ describe('jsonSchemaToRDFSGraph', () => {
       ]
     }
 
-    const result = jsonSchemaToRDFSGraph(schema, schemasObject);
+    const result = jsonSchemaToRDFSGraph(schema);
     expect(getArraySnapshot(result.nodes)).toEqual(getArraySnapshot(output.nodes));
     expect(getArraySnapshot(result.edges)).toEqual(getArraySnapshot(output.edges));
   });
