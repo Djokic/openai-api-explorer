@@ -1,10 +1,10 @@
 import React, {useCallback} from 'react';
 import ReactFlow, {Background, Controls, MiniMap} from "reactflow";
 import 'reactflow/dist/style.css';
-import {getSchemaTitleFromRef} from "../../helpers/schemaHelpers";
 
-import {getLayout} from "../../helpers/cytoscape.helper";
-
+import {LayoutData} from "../../helpers/graph.helper";
+import { getSchemaTitleFromRef } from "../../helpers/schema.helper";
+import { getLayout} from "../../helpers/cytoscape.helper";
 
 import './FlowGraph.css';
 
@@ -17,7 +17,7 @@ const minimapStyle = {
   height: 120,
 };
 
-function mapToReactFlowLayout(layout?: ReturnType<typeof getLayout>) {
+function mapToReactFlowLayout(layout?: LayoutData) {
   return {
     nodes: layout?.nodes.map((node) => ({
       ...node,
@@ -27,7 +27,7 @@ function mapToReactFlowLayout(layout?: ReturnType<typeof getLayout>) {
       data: { label: node.label, ...node.data },
       style: { width: node.width, height: node.height }
     })),
-    edges: layout?.edges.map((edge) => ({
+    edges: layout?.edges.map((edge: any) => ({
       ...edge,
       animated: true,
       arrowHeadType: 'arrowclosed',

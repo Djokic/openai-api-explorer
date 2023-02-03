@@ -1,8 +1,6 @@
 import {camelCase, upperFirst} from "lodash";
 import {OpenAPIV3} from "openapi-types";
 
-import {getSchemaTitleFromRef} from "./schemaHelpers";
-
 export type RDFSGraph = {
   nodes: RDFSNode[];
   edges: RDFSEdge[];
@@ -22,11 +20,22 @@ export type RDFSEdge = {
   target: string;
 }
 
-export function getLabelFromId(id: string) {
+export function parseSchemas(schemas: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject> = {}): OpenAPIV3.SchemaObject[] {
+  return Object.entries(schemas).map(([name, schema]) => {
+    return {
+      title: name,
+      ...schema
+    };
+  });
+}
+export function getSchemaTitleFromRef(ref?: string) {
+  return ref?.split('/').pop() || '';
+}
+function getLabelFromId(id: string) {
   return id.split('.').pop();
 }
 
-export function formatNodeLabelByType(label?: string, type?: string) {
+function formatNodeLabelByType(label?: string, type?: string) {
   switch (type) {
     case 'class':
       return `${upperFirst(camelCase(label))}`;
@@ -94,7 +103,7 @@ function createEdge(graph: RDFSGraph, {id, parentId, edgeType}: { id: string, pa
   })
 }
 
-export function jRDF(schema: OpenAPIV3.SchemaObject) {
+export function jsonSchemaToRdfsGraph(schema: OpenAPIV3.SchemaObject) {
   const graph: RDFSGraph = {nodes: [], edges: []};
   parseJsonPartToRdfsGraph(schema.title || '', schema, graph);
   return graph;

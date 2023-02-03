@@ -7,7 +7,6 @@ type CodeViewProps = {
   active?: boolean;
 }
 
-
 export default function CodeView(props: CodeViewProps) {
   const isActive = Boolean(props?.jsons?.some(Boolean) && props.active);
   return (

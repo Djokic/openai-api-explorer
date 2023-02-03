@@ -1,10 +1,7 @@
 import Cytoscape from "cytoscape";
-import COSEBilkent from 'cytoscape-cose-bilkent';
-import {RDFSGraph} from "../helpers/jsonSchema.helper";
-import {LayoutData} from "../hooks/useGraphLayout";
 
-
-Cytoscape.use(COSEBilkent);
+import {RDFSGraph} from "./schema.helper";
+import {LayoutData} from "./graph.helper";
 
 export function getLayout(graph: RDFSGraph, nodeSize: { width: number, height: number }): LayoutData {
   const { nodes, edges } = graph;

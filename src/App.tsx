@@ -1,14 +1,16 @@
+
 import React, {useMemo} from 'react';
 import {OpenAPIV3} from "openapi-types";
+
 import './App.css';
-import {parseSchemas} from "./helpers/schemaHelpers";
+
+import {SPEC_FILE_URL} from "./helpers/constants";
+import {getGraphLayout} from "./helpers/graph.helper";
+import {parseSchemas} from "./helpers/schema.helper";
 import CodeView from "./components/CodeView/CodeView";
 import SchemasList from "./components/SchemasList/SchemasList";
 import FlowGraph from "./components/FlowGraph/FlowGraph";
 
-
-import {useGraphLayout} from "./hooks/useGraphLayout";
-import {SPEC_FILE_URL} from "./helpers/constants";
 import {useOpenApiSpec} from "./hooks/useOpenApiSpec";
 
 function App() {
@@ -17,11 +19,10 @@ function App() {
   const {spec } = useOpenApiSpec(SPEC_FILE_URL);
   const schemasMap = spec?.components?.schemas as Record<string, OpenAPIV3.SchemaObject>;
   const schemasList = useMemo(() => parseSchemas(spec?.components?.schemas), [spec]);
-  const data = useGraphLayout({
+  const data = useMemo(() => getGraphLayout({
     schema,
-    schemas: schemasMap,
     nodeSize: { width: 200, height: 50 }
-  });
+  }), [schema]);
 
   const toggleCodeView = () => setShowCodeView(!showCodeView);
 

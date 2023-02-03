@@ -23,7 +23,7 @@ function SchemasList(props: SchemasListProps) {
         ?.scrollIntoView({ behavior: 'smooth'})
     }
   }, [props.selectedSchema]);
-  
+
   return (
     <ul className="SchemasList hide-scrollbar" ref={listRef}>
       {props.schemas.map((schema: OpenAPIV3.SchemaObject) => (
