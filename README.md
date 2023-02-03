@@ -4,6 +4,9 @@ Explore OpenAI OpenAPI specification by browsing RDFS graph
 
 Demo: https://openai-api-explorer.netlify.app/
 
+![image](https://user-images.githubusercontent.com/6945038/216637724-c98e1030-339e-4188-8398-e8aed4b964b8.png)
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
